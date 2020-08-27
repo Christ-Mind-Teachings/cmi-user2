@@ -6,10 +6,7 @@
   "scripts": {
     "destroy": "claudia destroy",
     "create": "claudia create --name cmiUserAPI --region us-east-1 --timeout 10 --api-module src/index --policies policies",
-    "create-old": "npm run transpile && claudia create --name cmiUser --region us-east-1 --timeout 10 --api-module bin/index --policies policies",
-    "update": "claudia --no-optional-dependencies update",
-    "update-old": "npm run transpile && claudia --no-optional-dependencies update",
-    "transpile": "babel --presets es2015 src --out-dir bin",
+    "update": "claudia --no-optional-dependencies --set-env-from-json secrets.json update",
     "precreate": "eslint src/**",
     "preupdate": "eslint src/**"
   },

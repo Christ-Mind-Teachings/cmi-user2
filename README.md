@@ -6,3 +6,6 @@ defines endpoints to query, create, update, and delete related records.
 
 The API is defined with claudia.js and uses AWS API Gateway and Lambda functions.
 
+Note: This replaces cmi-user
+
+
