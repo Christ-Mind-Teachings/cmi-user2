@@ -37,6 +37,11 @@ function shareQuote(parms) {
     shareBody.html = template.generateEmail(parms.quote, parms.citation, parms.url);
   }
 
+  //variables will be json.stringified
+  if (parms.variables) {
+    shareBody["recipient-variables"] = parms.variables;
+  }
+
   return new Promise((resolve, reject) => {
     send.messages().send(shareBody, (error, body) => {
       if (error) {

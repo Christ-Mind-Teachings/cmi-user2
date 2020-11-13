@@ -68,6 +68,11 @@ function parseRequestForSend(request) {
     parms.sid = userRequest.sid;
   }
 
+  //variables allow mail to be personalized
+  if (userRequest.variables) {
+    parms.variables = userRequest.variables;
+  }
+
   if (userRequest.message) {
     parms.msg = userRequest.message;
   }
