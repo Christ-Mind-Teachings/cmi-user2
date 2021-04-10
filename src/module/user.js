@@ -654,8 +654,10 @@ function getAnnotation(userId, paraKey, creationDate) {
  *  userId: md5 of email address
  *  key: can specify a complete or partial pageKey but must specify
  *      the sourceId at the minimum (2 digits)
+ *  topic: optional, when given results are filtered to those containing
+ *      the specified topic
  */
-function getAnnotationsByKey(userId, key) {
+function getAnnotationsByKey(userId, key, topic, summariesOnly=false) {
   return new Promise((resolve, reject) => {
 
     //query parms
@@ -685,6 +687,24 @@ function getAnnotationsByKey(userId, key) {
             i.creationDate = creationDate;
             return i;
           });
+          if (typeof topic !== "undefined") {
+            // console.log("topic: %s", topic);
+
+            results = results.filter((i) => {
+              if (!i.annotation.topicList) {
+                return false;
+              }
+              let found = i.annotation.topicList.find(t => t.value === topic);
+              if (found) {
+                if (summariesOnly) {
+                  return typeof found.summary !== "undefined";
+                }
+                return true;
+              }
+              return false;
+            });
+          }
+
           resolve(results);
         }
         else {

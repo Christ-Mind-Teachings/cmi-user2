@@ -22,6 +22,9 @@
  *    get /annotation/{uid}/{paraKey}/{creationDate}
  * delete /annotation/{uid}/{paraKey}/{creationDate}
  *    get /queryAnnotation/{uid}/{key}
+ *    get /queryAnnotationsByTopic/{uid}/{key}/{topic}
+ *    get /queryAnnotationsByTopic/{uid}/{key}/{topic}
+ *    get /querySummariesByTopic/{uid}/{key}/{topic}
  *
  *   post /send
  *   post /notify
@@ -514,6 +517,7 @@ api.get("/annotation/{uid}/{paraKey}/{creationDate}", function(request) {
 /*
  * query annotations by complete or partial pageKey. This can query
  * bookmarks by page, book, or source
+ *
  */
 api.get("/queryAnnotation/{uid}/{key}", function(request) {
   let userId = request.pathParams.uid;
@@ -526,6 +530,63 @@ api.get("/queryAnnotation/{uid}/{key}", function(request) {
   db.initialize(false);
 
   return db.getAnnotationsByKey(userId, queryKey)
+    .then((response) => {
+      result.response = response;
+      return result;
+    })
+    .catch((err) => {
+      result.message = err.message;
+      return result;
+    });
+});
+
+/*
+ * query annotations by complete or partial pageKey. This can query
+ * bookmarks by page, book, or source. 
+ *
+ * Return only annotations containing the topic
+ */
+api.get("/queryAnnotationsByTopic/{uid}/{key}/{topic}", function(request) {
+  let userId = request.pathParams.uid;
+  let queryKey = request.pathParams.key;
+  let topic = request.pathParams.topic;
+
+  var result = {
+    message: "OK"
+  };
+
+  db.initialize(false);
+
+  return db.getAnnotationsByKey(userId, queryKey, topic)
+    .then((response) => {
+      result.response = response;
+      return result;
+    })
+    .catch((err) => {
+      result.message = err.message;
+      return result;
+    });
+});
+
+/*
+ * query annotation summaries by complete or partial pageKey. This can query
+ * bookmarks by page, book, or source. 
+ *
+ * Return only annotations containing the topic with summary
+ */
+api.get("/querySummariesByTopic/{uid}/{key}/{topic}", function(request) {
+  let userId = request.pathParams.uid;
+  let queryKey = request.pathParams.key;
+  let topic = request.pathParams.topic;
+
+  var result = {
+    message: "OK"
+  };
+
+  db.initialize(false);
+
+  // filter by topics with summaries
+  return db.getAnnotationsByKey(userId, queryKey, topic, true)
     .then((response) => {
       result.response = response;
       return result;
