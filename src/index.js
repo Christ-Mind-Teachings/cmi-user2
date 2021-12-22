@@ -531,7 +531,7 @@ api.get("/queryAnnotation/{uid}/{key}", function(request) {
 
   return db.getAnnotationsByKey(userId, queryKey)
     .then((response) => {
-      result.response = response;
+      result.response = response.results;
       return result;
     })
     .catch((err) => {
@@ -559,7 +559,7 @@ api.get("/queryAnnotationsByTopic/{uid}/{key}/{topic}", function(request) {
 
   return db.getAnnotationsByKey(userId, queryKey, topic)
     .then((response) => {
-      result.response = response;
+      result.response = response.results;
       return result;
     })
     .catch((err) => {
@@ -588,7 +588,10 @@ api.get("/querySummariesByTopic/{uid}/{key}/{topic}", function(request) {
   // filter by topics with summaries
   return db.getAnnotationsByKey(userId, queryKey, topic, true)
     .then((response) => {
-      result.response = response;
+      if (response.topicTotal) {
+        result.topicTotal = response.topicTotal;
+      }
+      result.response = response.results;
       return result;
     })
     .catch((err) => {

@@ -687,6 +687,8 @@ function getAnnotationsByKey(userId, key, topic, summariesOnly=false) {
             i.creationDate = creationDate;
             return i;
           });
+
+          let topicTotal = 0;
           if (typeof topic !== "undefined") {
             // console.log("topic: %s", topic);
 
@@ -696,6 +698,7 @@ function getAnnotationsByKey(userId, key, topic, summariesOnly=false) {
               }
               let found = i.annotation.topicList.find(t => t.value === topic);
               if (found) {
+                topicTotal += 1;
                 if (summariesOnly) {
                   return typeof found.summary !== "undefined";
                 }
@@ -705,10 +708,10 @@ function getAnnotationsByKey(userId, key, topic, summariesOnly=false) {
             });
           }
 
-          resolve(results);
+          resolve({topicTotal: topicTotal, results: results});
         }
         else {
-          resolve([]);
+          resolve({topicTotal: 0, results: []});
         }
       }
     });
