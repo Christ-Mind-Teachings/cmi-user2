@@ -4,7 +4,7 @@
  *
  *    *get /mailList/{uid}
  *   *post /mailList
- *  *delete /mailList/{uid}
+ * *delete /mailList/{uid}
  * *delete /mailListAddress/{uid}/{address}
  *
  *   *post /topicList
@@ -14,9 +14,9 @@
  *
  *   *post /quote
  *    *get /quote/{uid}/{qid}
- * delete /quote/{uid}/{qid}
+ *  delete /quote/{uid}/{qid}
  *    *get /quoteData/{uid}/{itemId}
- *    get /quoteKeys/{uid}/{key}
+ *     get /quoteKeys/{uid}/{key}
  *
  *   post /annotation
  *    get /annotation/{uid}/{paraKey}/{creationDate}
@@ -25,6 +25,11 @@
  *    get /queryAnnotationsByTopic/{uid}/{key}/{topic}
  *    get /queryAnnotationsByTopic/{uid}/{key}/{topic}
  *    get /querySummariesByTopic/{uid}/{key}/{topic}
+ *
+ *   post /searchResult
+ *    get /searchResults/{uid}/{sid}
+ *    get /searchResult/{uid}/{sid}/{uniqueId}
+ *    get /searchResultsList/{uid}/{sid}
  *
  *   post /send
  *   post /notify
@@ -657,6 +662,120 @@ api.post("/acol/access", function(request) {
   return send.accessRequest(parms).then(() => {
     return db.auditShare(parms, "acol");
   });
+});
+
+/* ---------- Search --------------------
+ *
+/*
+ * Create or update user saved searches
+ *
+ * body: userId
+ *       sid
+ *       searchResult
+ */
+api.post("/searchResult", function(request) {
+  var handleRequest = require("./module/handleRequest");
+
+  var parms = handleRequest.parse("search", request);
+
+  var result = {
+    message: "OK"
+  };
+
+  if (parms.error) {
+    result.message = parms.message;
+    return result;
+  }
+
+  db.initialize(false);
+
+  return db.putSearchResult(parms.userId, parms.sid, parms.searchResult)
+    .then((response) => {
+      result.response = response;
+      return result;
+    })
+    .catch((err) => {
+      result.message = err.message;
+      return result;
+    });
+});
+
+/*
+ * Get saved searches for user and sid
+ */
+api.get("/searchResults/{uid}/{sid}", function(request) {
+  let userId = request.pathParams.uid;
+  let sid = request.pathParams.sid;
+
+  var result = {
+    message: "OK"
+  };
+
+  db.initialize(false);
+
+  return db.getSearchResults(userId, sid)
+    .then((response) => {
+      //console.log("get SearchResults response: %o", response);
+      result.response = response;
+      return result;
+    })
+    .catch((err) => {
+      result.message = err;
+      return result;
+    });
+});
+
+/*
+ * Get specific saved search for user, sid, and uniqueId
+ */
+api.get("/searchResult/{uid}/{sid}/{uniqueId}", function(request) {
+  let userId = request.pathParams.uid;
+  let sid = request.pathParams.sid;
+  let uniqueId = request.pathParams.uniqueId;
+
+  var result = {
+    message: "OK"
+  };
+
+  db.initialize(false);
+
+  return db.getSearchResult(userId, sid, uniqueId)
+    .then((response) => {
+      //console.log("get SearchResults response: %o", response);
+      result.response = response;
+      //console.log("get searchResult returning success: %o", result);
+      return result;
+    })
+    .catch((err) => {
+      result.message = err;
+      //console.log("get searchResult returning error: %o", result);
+      return result;
+    });
+});
+
+/*
+ * Get list of saved search results
+ */
+api.get("/searchResultsList/{uid}/{sid}", function(request) {
+  let userId = request.pathParams.uid;
+  let sid = request.pathParams.sid;
+
+  var result = {
+    message: "OK"
+  };
+
+  db.initialize(false);
+
+  return db.getSearchResultsList(userId, sid)
+    .then((response) => {
+      //console.log("get SearchResults response: %o", response);
+      result.response = response;
+      return result;
+    })
+    .catch((err) => {
+      result.message = err;
+      return result;
+    });
 });
 
 //------------- Netlify Identity Webhook ----------------------

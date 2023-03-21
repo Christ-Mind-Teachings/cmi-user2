@@ -1,3 +1,4 @@
+/*eslint no-undef: "warn"*/
 module.exports = {
   initializeSend: function() {
     const mailgun = require("mailgun-js")({

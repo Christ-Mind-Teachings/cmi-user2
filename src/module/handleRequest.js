@@ -6,7 +6,7 @@ function getAuditShareParms(parms, userRequest) {
   else {
     parms.date = userRequest.date;
   }
-  
+
   if (!userRequest.share) {
     parms.message.push("Error: body.share missing");
     parms.error = true;
@@ -14,12 +14,12 @@ function getAuditShareParms(parms, userRequest) {
   else {
     parms.share = userRequest.share;
   }
-  
+
   if (!parms.share.itemId) {
     parms.message.push("Error: body.share.itemId missing");
     parms.error = true;
   }
-  
+
   if (!parms.share.recipientList) {
     parms.message.push("Error: body.share.recipientList missing");
     parms.error = true;
@@ -118,6 +118,34 @@ function getQuoteParms(parms, userRequest) {
   return parms;
 }
 
+/*
+ * Required parms:
+ *  userId: verified by calling function
+ *  sid: source Id
+ *  searchResult: {object}
+ */
+function getSearchResultParms(parms, userRequest) {
+
+  if (!userRequest.sid) {
+    parms.message.push("Error: body.sid missing");
+    parms.error = true;
+  }
+  else {
+    parms.sid = userRequest.sid;
+  }
+
+  //searchResult
+  if (!userRequest.searchResult) {
+    parms.message.push("Error: body.searchResult missing");
+    parms.error = true;
+  }
+  else {
+    parms.searchResult = userRequest.searchResult;
+  }
+
+  return parms;
+}
+
 function getUserTopicsParms(parms, userRequest) {
 
   //source Id: a 2 digit string
@@ -197,6 +225,9 @@ function parseRequest(requestType, request) {
       break;
     case "annotation":
       parms = getAnnotationParms(parms, userRequest);
+      break;
+    case "search":
+      parms = getSearchResultParms(parms, userRequest);
       break;
     case "share":
       parms = getAuditShareParms(parms, userRequest);

@@ -252,7 +252,7 @@ function deleteAddress(userId, address) {
     getMailList(userId).then((response) => {
       if (response.length > 0) {
         let newList = response.filter((i) => i.address != address);
-        
+
         if (newList.length === response.length) {
           resolve(`Address "${address}" not found in mailList.`);
           return;
@@ -350,7 +350,7 @@ function deleteTopic(userId, sourceId, value) {
     getTopicList(userId, sourceId).then((response) => {
       if (response.length > 0) {
         let newList = response.filter((i) => i.value != value);
-        
+
         if (newList.length === response.length) {
           resolve(`Topic "${value}" not found in topicList.`);
           return;
@@ -390,6 +390,189 @@ function deleteTopicList(userId, sourceId) {
       else {
         resolve("deleted");
       }
+    });
+  });
+}
+
+//-------------- Saved Search ---------------
+
+/*
+ * Search results for a given userId and sid are stored in an array. Each result
+ * is uniquely identified by uniqueId (time that it was first saved)
+ */
+function putSearchResult(userId, sid, result) {
+  return new Promise((resolve, reject) => {
+
+    //we're saving the query results, mark it as not modified
+    // - this is used by the client
+    result.modified = false;
+
+    getSearchResults(userId, sid)
+    .then(( response ) => {
+
+      if (result.uniqueId) {
+        let idx = result.findIndex(e => {
+          return e.uniqueId === result.uniqueId;
+        });
+
+        if (idx === -1) {
+          reject(`result with uniqueId ${result.uniqueId} not found in array of saved results.`);
+          return;
+        }
+
+        //result has been previously save, replace it in array of saved results
+        response.splice(idx, 1, result);
+      }
+      else {
+        //new search result, assign uniqueId
+        result.uniqueId = Date.now();
+        result.name = result.query;
+        result.desc = `Search for "${result.query}"`;
+        response.push(result);
+      }
+
+      let putParams = {
+        TableName: "cmiUser",
+        Item: {
+          "userId": userId,
+          "itemId": `srch:${sid}`,
+          "result": response
+        }
+      };
+
+      db.put(putParams, function(err) {
+        if (err) {
+          reject(err);
+        }
+        else {
+          resolve("success");
+        }
+      });
+    })
+    .catch((err) => {
+      reject(err);
+      return;
+    });
+  });
+}
+
+/*
+ * Get search results
+ *  - returns array
+ */
+function getSearchResults(userId, sid) {
+  return new Promise((resolve, reject) => {
+
+    //query parms
+    let getParams = {
+      TableName: "cmiUser",
+      Key: {
+        "userId": userId,
+        "itemId": `srch:${sid}`
+      }
+    };
+
+    db.get(getParams, function(err, data) {
+      //console.log("getSearchResults data: %o", data);
+      //console.log("getSearchResults err: %o", err);
+      err ? reject(err) : data.Item ? resolve(data.Item.result) : resolve([]);
+    });
+  });
+}
+
+/*
+ * Get search result for specified uniqueId
+ * - returns object
+ */
+function getSearchResult(userId, sid, uniqueId) {
+  return new Promise((resolve, reject) => {
+
+    //query parms
+    let getParams = {
+      TableName: "cmiUser",
+      Key: {
+        "userId": userId,
+        "itemId": `srch:${sid}`
+      }
+    };
+
+    db.get(getParams, function(err, data) {
+      //console.log("getSearchResult, looking for uniqueId: %s", uniqueId);
+      //console.log("getSearchResults err: %o", err);
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      //no saved searches found
+      if (!data.Item.result) {
+        //console.log("No saved searches found for userid: %s and sid: %s", userId, sid);
+        resolve({});
+        return;
+      }
+
+      //resolve(data.Item.result)
+      let savedSearches = data.Item.result;
+      //console.log("found these saved searches: %o", savedSearches);
+
+      let idx = savedSearches.findIndex(e => {
+        //console.log("typeof e.uniqueId: %s, typeof uniqueId: %s", typeof e.uniqueId, typeof uniqueId);
+        //console.log("Is `${%s}` === %s'? Ans: %s", e.uniqueId, uniqueId, `${e.uniqueId}` === uniqueId);
+        return `${e.uniqueId}` === uniqueId;
+      });
+
+      if (idx === -1) {
+        //console.log("didn't find uniqueId: %s in saved searches", uniqueId);
+        reject(`result with uniqueId: ${uniqueId}, not found.`);
+        return;
+      }
+
+      console.log("Saved search found, returning: %o", savedSearches[idx]);
+      resolve(savedSearches[idx]);
+
+    });
+  });
+}
+
+/*
+ * Get list of search results
+ * - returns array
+ */
+function getSearchResultsList(userId, sid) {
+  return new Promise((resolve, reject) => {
+
+    //query parms
+    let getParams = {
+      TableName: "cmiUser",
+      Key: {
+        "userId": userId,
+        "itemId": `srch:${sid}`
+      }
+    };
+
+    db.get(getParams, function(err, data) {
+      console.log("getSearchResults data: %o", data);
+      console.log("getSearchResults err: %o", err);
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      //no saved searches found
+      if (!data.Item) {
+        resolve([]);
+        return;
+      }
+
+      //resolve(data.Item.result)
+      let savedSearches = data.Item.result;
+      let list = [];
+
+      savedSearches.forEach(s => {
+        list.push({name:s.name, desc:s.desc, count:s.count, uniqueId:s.uniqueId});
+      });
+
+      resolve(list);
     });
   });
 }
@@ -763,6 +946,10 @@ module.exports = {
   getAnnotation: getAnnotation,
   getAnnotationsByKey: getAnnotationsByKey,
   deleteAnnotation: deleteAnnotation,
+  putSearchResult: putSearchResult,
+  getSearchResults: getSearchResults,
+  getSearchResult: getSearchResult,
+  getSearchResultsList: getSearchResultsList,
   auditLogin: auditLogin,
   auditShare: auditShare
 };
