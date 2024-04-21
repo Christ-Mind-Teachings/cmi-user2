@@ -527,7 +527,7 @@ function getSearchResult(userId, sid, uniqueId) {
         return;
       }
 
-      console.log("Saved search found, returning: %o", savedSearches[idx]);
+      //console.log("Saved search found, returning: %o", savedSearches[idx]);
       resolve(savedSearches[idx]);
 
     });
@@ -551,8 +551,8 @@ function getSearchResultsList(userId, sid) {
     };
 
     db.get(getParams, function(err, data) {
-      console.log("getSearchResults data: %o", data);
-      console.log("getSearchResults err: %o", err);
+      //console.log("getSearchResults data: %o", data);
+      //console.log("getSearchResults err: %o", err);
       if (err) {
         reject(err);
         return;
@@ -647,7 +647,7 @@ function getQuote(userId, paraKey, creationDate) {
       }
       else {
         if (data.Item) {
-          let quote = formatResult(data.Item); 
+          let quote = formatResult(data.Item);
           resolve(quote);
           return;
         }
